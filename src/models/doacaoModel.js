@@ -1,70 +1,33 @@
 const pool = require('../config/db');
 
-async function listarTodos() {
-  const result = await pool.query(
-    'SELECT * FROM doacoes ORDER BY id_doacoes'
-  );
+exports.findAll = async () => {
+    const text = 'SELECT id_doacoes, quantidade, data_registro, id_turma, id_usuario FROM doacoes ORDER BY id_doacoes';
+    const result = await pool.query(text);
+    return result.rows;
+};
 
-  return result.rows;
-}
+exports.findById = async (id) => {
+    const text = 'SELECT id_doacoes, quantidade, data_registro, id_turma, id_usuario FROM doacoes WHERE id_doacoes = $1';
+    const result = await pool.query(text, [id]);
+    return result.rows[0] || null;
+};
 
-async function buscarPorId(id) {
-  const result = await pool.query(
-    'SELECT * FROM doacoes WHERE id_doacoes = $1',
-    [id]
-  );
+exports.create = async (id_turma, id_usuario, quantidade) => {
+    const text = 'INSERT INTO doacoes (id_turma, id_usuario, quantidade) VALUES ($1, $2, $3) RETURNING *';
+    const values = [id_turma, id_usuario, quantidade];
+    const result = await pool.query(text, values);
+    return result.rows[0] || null;
+};
 
-  return result.rows[0];
-}
+exports.update = async (id, id_turma, id_usuario, quantidade) => {
+    const text = 'UPDATE doacoes SET id_turma = $1, id_usuario = $2, quantidade = $3 WHERE id_doacoes = $4 RETURNING *';
+    const values = [id_turma, id_usuario, quantidade, id];
+    const result = await pool.query(text, values);
+    return result.rows[0] || null;
+};
 
-async function criar(dados) {
-  const { id_turma, id_usuario, quantidade } = dados;
-
-  const sql = `
-    INSERT INTO doacoes (id_turma, id_usuario, quantidade)
-    VALUES ($1, $2, $3)
-    RETURNING *
-  `;
-
-  const result = await pool.query(
-    sql,
-    [id_turma, id_usuario, quantidade]
-  );
-
-  return result.rows[0];
-}
-
-async function atualizar(id, dados) {
-  const { id_turma, id_usuario, quantidade } = dados;
-
-  const sql = `
-    UPDATE doacoes
-    SET id_turma = $1, id_usuario = $2, quantidade = $3
-    WHERE id_doacoes = $4
-    RETURNING *
-  `;
-
-  const result = await pool.query(
-    sql,
-    [id_turma, id_usuario, quantidade, id]
-  );
-
-  return result.rows[0] || null;
-}
-
-async function deletar(id) {
-  const result = await pool.query(
-    'DELETE FROM doacoes WHERE id_doacoes = $1',
-    [id]
-  );
-
-  return result.rowCount > 0;
-}
-
-module.exports = {
-  listarTodos,
-  buscarPorId,
-  criar,
-  atualizar,
-  deletar
+exports.delete = async (id) => {
+    const text = 'DELETE FROM doacoes WHERE id_doacoes = $1 RETURNING *';
+    const result = await pool.query(text, [id]);
+    return result.rows[0] || null;
 };

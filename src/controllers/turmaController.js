@@ -1,82 +1,67 @@
-const pool = require('../config/db');
+const turmaModel = require('../models/turmaModel');
 
-async function listarTodos() {
-  const result = await pool.query(
-    'SELECT * FROM turmas ORDER BY id_turma'
-  );
+exports.getTurmas = async (req, res) => {
+    try {
+        const turmas = await turmaModel.findAll();
+        res.json(turmas);
+    } catch (err) {
+        console.error('Erro ao buscar turmas: ', err);
+        res.status(500).json({ error: 'Erro interno ao buscar turmas' });
+    }
+};
 
-  return result.rows;
-}
+exports.getTurmaById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const turma = await turmaModel.findById(id);
+        if (!turma) return res.status(404).json({ error: 'Turma não encontrada' });
+        res.json(turma);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro interno ao buscar turma' });
+    }
+};
 
-async function buscarPorId(id) {
-  const result = await pool.query(
-    'SELECT * FROM turmas WHERE id_turma = $1',
-    [id]
-  );
+exports.createTurma = async (req, res) => {
+    const { nome_curso, modulo_serie, periodo } = req.body;
+    
+    if (!nome_curso || !modulo_serie || !periodo) {
+        return res.status(400).json({ error: "Os campos nome_curso, modulo_serie e periodo são obrigatórios" });
+    }
+    
+    try {
+        const newTurma = await turmaModel.create(nome_curso, modulo_serie, periodo);
+        res.status(201).json(newTurma);
+    } catch (err) {
+        console.error('Erro ao criar turma', err);
+        res.status(500).json({ error: "Erro interno ao criar turma" });
+    }
+};
 
-  return result.rows[0];
-}
+exports.updateTurma = async (req, res) => {
+    const { id } = req.params;
+    const { nome_curso, modulo_serie, periodo, status } = req.body;
+    
+    if (!nome_curso || !modulo_serie || !periodo ) {
+        return res.status(400).json({ error: 'Campos incompletos para atualização. nome_curso, modulo_serie e periodo são obrigatórios.' });
+    }
+    
+    try {
+        const updated = await turmaModel.update(id, nome_curso, modulo_serie, periodo, status);
+        if (!updated) return res.status(404).json({ error: 'Turma não encontrada.' });
+        res.json(updated);
+    } catch (err) {
+        console.error('Erro ao atualizar turma', err);
+        res.status(500).json({ error: 'Erro interno ao atualizar turma' });
+    }
+};
 
-async function criar(dados) {
-  const { nome_curso, modulo_serie, periodo, status } = dados;
-
-  const sql = `
-    INSERT INTO turmas (nome_curso, modulo_serie, periodo, status)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *
-  `;
-
-  const result = await pool.query(
-    sql,
-    [nome_curso, modulo_serie, periodo, status]
-  );
-
-  return result.rows[0];
-}
-
-async function atualizar(id, dados) {
-  const { nome_curso, modulo_serie, periodo, status } = dados;
-
-  const sql = `
-    UPDATE turmas
-    SET nome_curso = $1, modulo_serie = $2, periodo = $3, status = $4
-    WHERE id_turma = $5
-    RETURNING *
-  `;
-
-  const result = await pool.query(
-    sql,
-    [nome_curso, modulo_serie, periodo, status, id]
-  );
-
-  return result.rows[0] || null;
-}
-
-async function deletar(id) {
-  const result = await pool.query(
-    'DELETE FROM turmas WHERE id_turma = $1',
-    [id]
-  );
-
-  return result.rowCount > 0;
-}
-
-async function buscarPorNomeCurso(nome_curso) {
-  const sql = 'SELECT * FROM turmas WHERE nome_curso ILIKE $1';
-
-  const result = await pool.query(
-    sql,
-    [`%${nome_curso}%`]
-  );
-
-  return result.rows;
-}
-
-module.exports = {
-  listarTodos,
-  buscarPorId,
-  criar,
-  atualizar,
-  deletar,
-  buscarPorNomeCurso
+exports.deleteTurma = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deleted = await turmaModel.delete(id);
+        if (!deleted) return res.status(404).json({ error: "Turma não encontrada" });
+        res.json({ message: "Turma removida com sucesso" });
+    } catch (err) {
+        res.status(500).json({ error: "Erro interno ao deletar turma" });
+    }
 };

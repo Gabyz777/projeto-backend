@@ -1,16 +1,20 @@
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Olá! O servidor da Gincana Solidária está funcionando!');
-});
+const turmaRoutes = require('./src/routes/turmaRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const doacaoRoutes = require('./src/routes/doacaoRoutes');
+
+
+app.use('/api/turmas', turmaRoutes);
+app.use('/api/usuarios', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/doacoes', doacaoRoutes);
 
 const PORT = process.env.PORT || 3000;
 
