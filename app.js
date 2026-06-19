@@ -10,13 +10,16 @@ const userRoutes = require('./src/routes/userRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const doacaoRoutes = require('./src/routes/doacaoRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
-
+const configRoutes = require('./src/routes/configRoutes');
+const gerenciarRoutes = require('./src/routes/gerenciarRoutes');
 
 app.use('/api/turmas', turmaRoutes);
 app.use('/api/usuarios', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/doacoes', doacaoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/config', configRoutes);
+app.use('/api/gerenciar', gerenciarRoutes);
 
 const PORT = process.env.PORT || 3000;
 
